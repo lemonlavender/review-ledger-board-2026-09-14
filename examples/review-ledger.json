@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "repository": null,
+  "pullRequest": 42,
+  "reviewedHead": "b222222",
+  "headRecheck": "unavailable",
+  "items": [
+    {
+      "threadId": "R17", "threadState": "resolved", "path": "src/memo.ts", "line": 31,
+      "verdict": "still-present",
+      "reason": "The supplied current code retains a truthiness guard despite the stated contract accepting numeric key 0.",
+      "evidence": {"origin": "supplied", "commit": "b222222", "command": null, "result": "Rename-only change retains if(key); no current regression result supplied."},
+      "nextAction": "Fix the guard and verify memoization with key 0 on the reviewed commit."
+    },
+    {
+      "threadId": "R18", "threadState": "open", "path": null, "line": null,
+      "verdict": "verified-fixed",
+      "reason": "Supplied current diff and reported targeted regression support the listener fix; not independently executed in this audit.",
+      "evidence": {"origin": "supplied", "commit": "b222222", "command": null, "result": "Same listener reference removed; regression reportedly failed at a111111 and passed at b222222."},
+      "nextAction": "Attach the exact command and log for an independently replayable handoff."
+    },
+    {
+      "threadId": "R19", "threadState": "outdated", "path": null, "line": null,
+      "verdict": "needs-evidence",
+      "reason": "An older passing test and an outdated thread do not establish current behavior.",
+      "evidence": {"origin": "supplied", "commit": "a111111", "command": null, "result": "Older test reported passing; current source unavailable."},
+      "nextAction": "Inspect current source and verify the null-pointer case at b222222."
+    }
+  ]
+}
