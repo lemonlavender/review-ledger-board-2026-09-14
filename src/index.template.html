@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Review Ledger Board · 审查证据看板</title>
+<style>
+:root{--paper:#f4f1e9;--ink:#23342f;--muted:#637069;--line:#d9ded4;--accent:#d1512b;--good:#277155;--warn:#8a5620;--white:#fffef9;color-scheme:light;font:14px/1.6 'Avenir Next','PingFang SC','Microsoft YaHei',sans-serif}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink)}main{max-width:1100px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;gap:18px;align-items:start;border-top:5px solid var(--ink);padding:18px 0}.kicker{font:11px/1.4 'Courier New',monospace;letter-spacing:.16em;color:var(--muted)}h1{font:36px/1.13 Georgia,'Songti SC',serif;letter-spacing:-1px;margin:8px 0}p{margin:6px 0;color:var(--muted)}.status{font-size:12px;border:1px solid var(--line);border-radius:30px;padding:5px 10px;white-space:nowrap}button{font:inherit;color:var(--ink);background:var(--white);border:1px solid var(--line);padding:8px 13px;border-radius:6px;cursor:pointer}button:hover{border-color:var(--ink)}button:focus-visible,textarea:focus-visible{outline:3px solid #d1512b88;outline-offset:2px}button.primary{color:white;background:var(--ink);border-color:var(--ink)}button:disabled{opacity:.5;cursor:default}.controls{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.input-box{background:var(--white);border:1px solid var(--line);padding:16px;border-radius:8px}label{display:block;font-weight:600;margin-bottom:7px}textarea{width:100%;border:1px solid var(--line);background:#fff;color:var(--ink);padding:12px;border-radius:4px;font:12px/1.6 'SFMono-Regular',Consolas,monospace;resize:vertical;min-height:130px}.note{font-size:12px}.error{color:#a5271c;white-space:pre-wrap}.summary{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);background:var(--white);margin:22px 0 14px}.metric{padding:16px}.metric+.metric{border-left:1px solid var(--line)}.metric strong{font:34px/1 Georgia,serif;display:block;margin-bottom:7px}.metric span{color:var(--muted);font-size:12px}.attention strong{color:var(--accent)}.meta{font:12px/1.7 'Courier New',monospace;overflow-wrap:anywhere;margin-bottom:12px}.stale{border-left:4px solid var(--accent);padding:10px 14px;background:#f9e3d7;color:#782e15;margin-bottom:12px}.rows{display:grid;gap:10px}.row{background:var(--white);border:1px solid var(--line);padding:16px;border-radius:7px}.row-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.row h3{margin:0;font:20px Georgia,serif}.pill{font-size:11px;border-radius:20px;padding:2px 8px;background:#e5eee6;color:var(--good)}.pill.attention{background:#fae5d7;color:#963d17}.details{font-size:12px;color:var(--muted);overflow-wrap:anywhere;margin-top:9px}.row p{color:var(--ink)}.action{border-top:1px dashed var(--line);padding-top:8px;margin-top:9px;font-size:13px}.empty{border:1px dashed var(--line);padding:32px;text-align:center}.export{margin-top:20px}.export textarea{min-height:230px}footer{margin-top:25px;border-top:1px solid var(--line);padding-top:12px;font-size:11px;color:var(--muted)}[hidden]{display:none!important}@media(max-width:570px){main{padding:14px}h1{font-size:28px}header{display:block}.status{display:inline-block;margin-top:10px}.metric{padding:12px}.metric strong{font-size:28px}}
+</style>
+</head>
+<body><main>
+<header><div><div class="kicker">EVIDENCE DESK / 01</div><h1>审查证据看板</h1><p>评论可以关闭，证据仍需可追溯。</p></div><span id="connection" class="status" role="status">本地界面 · Connecting</span></header>
+<section class="input-box"><label for="input">粘贴 Skill 输出的 JSON 记录 / Paste a review ledger</label><textarea id="input" spellcheck="false" placeholder='{"schemaVersion":1,"items":[...]}'></textarea><div class="controls"><button class="primary" id="load">生成看板 / Build board</button><button id="sample">载入模拟案例 / Sample</button><button id="export" disabled>生成交接文档 / Export Markdown</button></div><p class="note">无需登录或联网。内容只在当前面板内；关闭前请保存导出的文本。模拟数据不代表真实审查。</p><p id="error" class="error" role="alert" hidden></p></section>
+<section id="result" hidden><div class="summary"><div class="metric"><strong id="total">0</strong><span>审查意见 / Findings</span></div><div class="metric attention"><strong id="attention">0</strong><span>待处理 / Need attention</span></div><div class="metric"><strong id="verified">0</strong><span>有修复证据 / Fixed</span></div></div><div id="meta" class="meta"></div><div id="stale" class="stale" hidden>提交已变化：这些结论仅对应被审查版本，请复查当前提交。 / Head changed; recheck required.</div><div class="controls"><button id="all" aria-pressed="true">全部 / All</button><button id="pending" aria-pressed="false">仅待处理 / Needs attention</button></div><div id="rows" class="rows"></div></section>
+<section class="export" id="export-panel" hidden><label for="output">交接文档 / Handoff — 选中后复制保存</label><textarea id="output" readonly></textarea></section>
+<footer>Review Ledger Board 1.0.0 · iPolloWork portable MCP App · Imported verdicts are displayed, not independently certified.</footer>
+</main><script>
+/* LEDGER_CORE */
+const SAMPLE = /* SAMPLE_JSON */;
+const el=id=>document.getElementById(id);
+const labels={'verified-fixed':'已有修复证据 / Fixed','still-present':'问题仍在 / Present','needs-evidence':'缺少证据 / Evidence needed','obsolete':'逻辑已移除 / Obsolete','false-positive':'原评论误报 / False positive'};
+let current=null,onlyAttention=false;
+function render(){
+ const s=summarize(current);el('result').hidden=false;el('export').disabled=false;
+ for(const key of ['total','attention','verified'])el(key).textContent=s[key];
+ el('meta').textContent=`PR ${current.pullRequest??'unknown'} · ${current.repository??'repository not provided'}\nReviewed ${current.reviewedHead??'unknown'} · Head recheck: ${current.headRecheck} · Executed evidence: ${s.independentlyExecuted}`;
+ el('stale').hidden=!s.stale;el('rows').replaceChildren();
+ const items=current.items.filter(i=>!onlyAttention||['still-present','needs-evidence'].includes(i.verdict));
+ for(const i of items){
+  const card=document.createElement('article');card.className='row';
+  const top=document.createElement('div');top.className='row-head';const title=document.createElement('h3');title.textContent=i.threadId;const badge=document.createElement('span');badge.className='pill'+(['still-present','needs-evidence'].includes(i.verdict)?' attention':'');badge.textContent=labels[i.verdict];top.append(title,badge);card.append(top);
+  const reason=document.createElement('p');reason.textContent=i.reason;card.append(reason);
+  const details=document.createElement('div');details.className='details';details.textContent=`Thread: ${i.threadState} · Origin: ${i.evidence.origin} · Evidence commit: ${i.evidence.commit??'unknown'} · Command: ${i.evidence.command??'not provided'}`;card.append(details);
+  const action=document.createElement('div');action.className='action';action.textContent='下一步 / Next: '+i.nextAction;card.append(action);el('rows').append(card);
+ }
+ if(!items.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='此筛选下没有意见 / No findings in this view';el('rows').append(empty);}
+ el('all').setAttribute('aria-pressed',String(!onlyAttention));el('pending').setAttribute('aria-pressed',String(onlyAttention));
+}
+function load(value){current=validateLedger(value);el('input').value=JSON.stringify(current,null,2);el('error').hidden=true;el('export-panel').hidden=true;onlyAttention=false;render();return summarize(current);}
+function showError(error){el('error').textContent=error.message;el('error').hidden=false;}
+el('load').onclick=()=>{try{if(el('input').value.length>2*1024*1024)throw new Error('JSON must be smaller than 2 MiB');load(JSON.parse(el('input').value));}catch(e){showError(e)}};
+el('sample').onclick=()=>load(structuredClone(SAMPLE));
+el('all').onclick=()=>{onlyAttention=false;render()};el('pending').onclick=()=>{onlyAttention=true;render()};
+el('export').onclick=()=>{el('output').value=toMarkdown(current);el('export-panel').hidden=false;el('output').focus();el('output').select()};
+
+// MCP Apps JSON-RPC bridge; only messages from the embedding host are accepted.
+let nextId=0;const requests=new Map();
+function post(message){parent.postMessage(message,'*')}
+function request(method,params){const id=++nextId;return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{requests.delete(id);reject(new Error('Host handshake timed out; manual board remains available.'))},8000);requests.set(id,{resolve,reject,timer});post({jsonrpc:'2.0',id,method,params})})}
+function reply(id,result){post({jsonrpc:'2.0',id,result})}
+addEventListener('message',event=>{
+ if(event.source!==parent||!event.data||event.data.jsonrpc!=='2.0')return;const m=event.data;
+ if(m.id!==undefined&&!m.method){const r=requests.get(m.id);if(!r)return;clearTimeout(r.timer);requests.delete(m.id);m.error?r.reject(new Error(m.error.message)):r.resolve(m.result);return;}
+ if(m.method==='tools/list'){reply(m.id,{tools:[{name:'import_ledger',description:'Display a review evidence ledger. This does not modify repository files or review verdicts.',inputSchema:{type:'object',properties:{ledger:{type:'object'}},required:['ledger'],additionalProperties:false}},{name:'get_summary',description:'Read the current board summary and Markdown handoff.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true}}]});return;}
+ if(m.method==='tools/call'){try{const name=m.params?.name;if(name==='import_ledger')load(m.params.arguments?.ledger);else if(name!=='get_summary')throw new Error('Unknown tool: '+name);if(!current)throw new Error('Load a ledger first.');reply(m.id,{content:[{type:'text',text:toMarkdown(current)}],structuredContent:{summary:summarize(current),ledger:current}})}catch(e){reply(m.id,{isError:true,content:[{type:'text',text:e.message}]})}return;}
+ if(m.method==='ui/resource-teardown')reply(m.id,{});
+});
+if(parent!==window){request('ui/initialize',{protocolVersion:'2025-11-21',appInfo:{name:'Review Ledger Board',version:'1.0.0'},appCapabilities:{tools:{},availableDisplayModes:['inline','fullscreen']}}).then(()=>{post({jsonrpc:'2.0',method:'ui/notifications/initialized',params:{}});el('connection').textContent='iPollo 已连接 / Connected'}).catch(e=>{el('connection').textContent='手动模式 / Manual';showError(e)})}else{el('connection').textContent='独立预览 / Standalone'}
+</script></body></html>
