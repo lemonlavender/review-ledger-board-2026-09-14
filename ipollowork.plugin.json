@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "id": "review-ledger-board",
+  "name": "Review Ledger Board",
+  "description": "An offline review evidence board with JSON import, attention filters and Markdown handoff.",
+  "category": "Development & Review",
+  "source": {"format":"ipollowork-extension-manifest","origin":"local","trusted":false,"reference":"https://github.com/lemonlavender/review-ledger-board-2026-09-14"},
+  "package": {"version":"1.0.0","publisher":{"id":"lemonlavender","name":"lemonlavender"},"compatibility":{"ipollowork":"0.50.12"},"updateId":"lemonlavender/review-ledger-board"},
+  "resources": [{"type":"ui","id":"board","label":"Review Ledger Board","description":"Inspect review evidence and generate a handoff.","path":"ui/index.html","required":true,"ui":{"uri":"ui://review-ledger-board/board","mimeType":"text/html;profile=mcp-app","prefersBorder":false}}],
+  "contributions": [
+    {"type":"workspace-app","ref":"board","label":"Review Ledger","description":"Open the evidence board in the workspace."},
+    {"type":"settings-page","ref":"board","label":"Review Ledger Board"},
+    {"type":"conversation-template","label":"Inspect review evidence","prompt":"Open Review Ledger Board and use its import_ledger tool to inspect my review ledger. Then read get_summary.","mode":"work"}
+  ],
+  "localization": {"defaultLocale":"en","translations":{"zh-CN":{"name":"审查证据看板","description":"离线导入审查 JSON，筛选待处理意见并生成 Markdown 交接文档。","category":"开发与审查","resources":{"board":{"label":"审查证据看板","description":"核对评论状态、提交版本与证据来源。"}}}}}
+}
