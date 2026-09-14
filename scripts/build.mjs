@@ -1,0 +1,11 @@
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const core=readFileSync(path.join(root,'src/ledger.mjs'),'utf8').replace(/^export /gm,'');
+const sample=JSON.parse(readFileSync(path.join(root,'examples/review-ledger.json'),'utf8'));
+const template=readFileSync(path.join(root,'src/index.template.html'),'utf8');
+const html=template.replace('/* LEDGER_CORE */',()=>core).replace('/* SAMPLE_JSON */',()=>JSON.stringify(sample).replaceAll('<','\\u003c'));
+if(html.includes('/* LEDGER_CORE */')||html.includes('/* SAMPLE_JSON */'))throw new Error('Unexpanded build placeholder');
+mkdirSync(path.join(root,'ui'),{recursive:true});writeFileSync(path.join(root,'ui/index.html'),html);
+console.log('Built ui/index.html; no external runtime dependencies.');
